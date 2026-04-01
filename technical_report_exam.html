@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Report Writing – Final Exam</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060b14;
+    --surface: #0d1624;
+    --surface2: #111d30;
+    --border: #1e3350;
+    --accent: #00d4ff;
+    --accent2: #7c3aed;
+    --gold: #f59e0b;
+    --green: #10b981;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Exo 2',sans-serif;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(0,212,255,0.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(124,58,237,0.04) 0%,transparent 60%);pointer-events:none;z-index:0}
+
+  /* ── SCREENS ── */
+  .screen{display:none;position:relative;z-index:1}
+  .screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+
+  /* ── START SCREEN ── */
+  #startScreen{text-align:center;gap:32px}
+  .badge{display:inline-block;background:linear-gradient(135deg,var(--accent2),var(--accent));padding:6px 18px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}
+  h1.title{font-family:'Orbitron',monospace;font-size:clamp(28px,5vw,52px);font-weight:900;background:linear-gradient(135deg,#fff 30%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
+  h1.title span{display:block;font-size:clamp(14px,2.5vw,20px);font-weight:400;-webkit-text-fill-color:var(--accent);letter-spacing:3px;margin-top:8px}
+  .subtitle{color:var(--muted);font-size:15px;max-width:500px;line-height:1.6}
+  .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;width:100%;max-width:560px}
+  .info-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center}
+  .info-card .num{font-family:'Orbitron',monospace;font-size:26px;font-weight:700;color:var(--accent)}
+  .info-card .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+  .btn-start{background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;color:#fff;font-family:'Orbitron',monospace;font-size:16px;font-weight:700;padding:18px 52px;border-radius:50px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;box-shadow:0 0 40px rgba(0,212,255,0.25);transition:transform .2s,box-shadow .2s}
+  .btn-start:hover{transform:translateY(-3px);box-shadow:0 0 60px rgba(0,212,255,0.45)}
+  .rules{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 24px;max-width:540px;width:100%;text-align:left}
+  .rules h3{color:var(--accent);font-size:13px;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+  .rules li{font-size:13px;color:var(--muted);line-height:1.8;margin-left:16px}
+
+  /* ── EXAM SCREEN ── */
+  #examScreen{padding:0;justify-content:flex-start}
+  .exam-wrap{width:100%;max-width:860px;margin:0 auto;padding:16px 20px 100px}
+
+  /* header */
+  .exam-header{position:sticky;top:0;z-index:100;background:rgba(6,11,20,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%}
+  .timer-box{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px}
+  .timer-icon{font-size:18px}
+  #timerDisplay{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--accent)}
+  #timerDisplay.warning{color:var(--gold)}
+  #timerDisplay.danger{color:var(--red);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .progress-box{flex:1;max-width:280px}
+  .prog-label{font-size:11px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:5px}
+  .prog-bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden}
+  .prog-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:3px;transition:width .4s ease}
+  .answered-count{font-size:12px;color:var(--muted);white-space:nowrap}
+
+  /* question card */
+  .q-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px;margin:20px 0;animation:fadeIn .35s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+  .q-meta{display:flex;align-items:center;gap:8px;margin-bottom:16px}
+  .q-num{font-family:'Orbitron',monospace;font-size:13px;color:var(--accent);font-weight:700}
+  .diff-badge{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+  .diff-easy{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.3)}
+  .diff-medium{background:rgba(245,158,11,.15);color:var(--gold);border:1px solid rgba(245,158,11,.3)}
+  .diff-hard{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+  .q-text{font-size:17px;font-weight:500;line-height:1.65;color:#f1f5f9;margin-bottom:22px}
+  .choices{display:flex;flex-direction:column;gap:10px}
+  .choice{display:flex;align-items:center;gap:14px;background:var(--surface2);border:2px solid var(--border);border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+  .choice::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent),var(--accent2));opacity:0;transition:opacity .2s}
+  .choice:hover{border-color:var(--accent);transform:translateX(4px)}
+  .choice:hover::before{opacity:.05}
+  .choice.selected{border-color:var(--accent);background:rgba(0,212,255,.08)}
+  .choice.selected::before{opacity:.08}
+  .choice-label{font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--accent);width:24px;flex-shrink:0;position:relative;z-index:1}
+  .choice-text{font-size:14px;color:var(--text);position:relative;z-index:1;line-height:1.5}
+
+  /* nav */
+  .nav-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(6,11,20,0.97);border-top:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:center;gap:12px;z-index:100}
+  .btn{border:none;border-radius:10px;padding:11px 26px;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.5px}
+  .btn-sec{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+  .btn-sec:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-pri{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff}
+  .btn-pri:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,212,255,.3)}
+  .btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important}
+  .btn-submit{background:linear-gradient(135deg,#dc2626,var(--red));color:#fff;font-weight:700}
+  .btn-submit:hover{box-shadow:0 4px 20px rgba(239,68,68,.4)}
+  .q-nav-mini{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+
+  /* ── RESULTS SCREEN ── */
+  #resultsScreen{gap:28px;padding:40px 20px}
+  .results-header{text-align:center}
+  .score-ring{width:160px;height:160px;position:relative;margin:0 auto 20px}
+  .score-ring svg{transform:rotate(-90deg)}
+  .score-ring .ring-bg{fill:none;stroke:var(--surface2);stroke-width:12}
+  .score-ring .ring-fill{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dashoffset 1.5s ease}
+  .score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .score-num{font-family:'Orbitron',monospace;font-size:38px;font-weight:900}
+  .score-lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .grade-banner{display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border-radius:50px;font-family:'Orbitron',monospace;font-size:18px;font-weight:700;letter-spacing:2px}
+  .grade-A{background:rgba(16,185,129,.15);color:var(--green);border:2px solid var(--green)}
+  .grade-B{background:rgba(0,212,255,.12);color:var(--accent);border:2px solid var(--accent)}
+  .grade-C{background:rgba(245,158,11,.12);color:var(--gold);border:2px solid var(--gold)}
+  .grade-D{background:rgba(239,68,68,.1);color:var(--red);border:2px solid var(--red)}
+  .encouragement{font-size:16px;color:var(--muted);max-width:520px;text-align:center;line-height:1.7}
+  .stats-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+  .stat-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 22px;text-align:center;min-width:110px}
+  .stat-box .sn{font-family:'Orbitron',monospace;font-size:24px;font-weight:700}
+  .stat-box .sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:3px}
+  .correct-num{color:var(--green)}
+  .wrong-num{color:var(--red)}
+  .skipped-num{color:var(--gold)}
+  .btn-review{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;padding:14px 36px;border-radius:50px;font-family:'Orbitron',monospace;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:2px;transition:all .2s}
+  .btn-review:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,212,255,.3)}
+  .btn-retry{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:14px 36px;border-radius:50px;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-retry:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* ── REVIEW SCREEN ── */
+  #reviewScreen{padding:20px;justify-content:flex-start;align-items:stretch}
+  .review-wrap{max-width:860px;margin:0 auto;width:100%}
+  .review-header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .review-header h2{font-family:'Orbitron',monospace;font-size:22px;color:var(--accent)}
+  .filter-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .filter-btn{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .2s}
+  .filter-btn.active{background:var(--accent);color:#000;border-color:var(--accent)}
+  .review-item{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:14px;border-left:4px solid transparent}
+  .review-item.correct{border-left-color:var(--green)}
+  .review-item.wrong{border-left-color:var(--red)}
+  .review-item.skipped{border-left-color:var(--gold)}
+  .ri-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .ri-status{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+  .status-correct{background:rgba(16,185,129,.15);color:var(--green)}
+  .status-wrong{background:rgba(239,68,68,.12);color:var(--red)}
+  .status-skipped{background:rgba(245,158,11,.12);color:var(--gold)}
+  .ri-q{font-size:15px;color:#f1f5f9;margin-bottom:14px;line-height:1.6}
+  .ri-choices{display:flex;flex-direction:column;gap:7px}
+  .ri-choice{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;font-size:13px;border:1px solid transparent}
+  .ri-choice.correct-ans{background:rgba(16,185,129,.1);border-color:rgba(16,185,129,.3);color:var(--green)}
+  .ri-choice.wrong-ans{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:var(--red)}
+  .ri-choice.normal{color:var(--muted)}
+  .ri-choice-lbl{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;width:20px;flex-shrink:0}
+  .trick-box{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:14px 16px;margin-top:12px}
+  .trick-box .trick-title{font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .trick-box .trick-text{font-size:13px;color:#d4a017;line-height:1.6}
+  .back-btn{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 28px;border-radius:50px;font-family:'Exo 2',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;margin:20px auto;display:block}
+  .back-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+  @media(max-width:600px){
+    .exam-header{flex-wrap:wrap}
+    .progress-box{order:3;width:100%;max-width:100%}
+    h1.title{font-size:26px}
+    .q-text{font-size:15px}
+    .btn{padding:10px 18px;font-size:13px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ START SCREEN ═══════════════ -->
+<div id="startScreen" class="screen active">
+  <div class="badge">ECU · Faculty of Computer Science</div>
+  <h1 class="title">Report Writing<span>&amp; Presentation Skills</span></h1>
+  <p class="subtitle">A rigorous final exam simulation covering all course material. Challenge yourself and master every concept.</p>
+  <div class="info-grid">
+    <div class="info-card"><div class="num">100</div><div class="lbl">Questions</div></div>
+    <div class="info-card"><div class="num">60</div><div class="lbl">Minutes</div></div>
+    <div class="info-card"><div class="num">3</div><div class="lbl">Difficulty Levels</div></div>
+    <div class="info-card"><div class="num">9</div><div class="lbl">Topics</div></div>
+  </div>
+  <div class="rules">
+    <h3>📋 Exam Rules</h3>
+    <ul>
+      <li>Questions and answers are shuffled randomly each attempt</li>
+      <li>You can navigate back and forth between questions</li>
+      <li>Unanswered questions count as wrong answers</li>
+      <li>Timer auto-submits when it reaches zero</li>
+      <li>Review all answers with tips after submission</li>
+    </ul>
+  </div>
+  <button class="btn-start" onclick="startExam()">⚡ Start Exam</button>
+</div>
+
+<!-- ═══════════════ EXAM SCREEN ═══════════════ -->
+<div id="examScreen" class="screen">
+  <div class="exam-header">
+    <div class="timer-box">
+      <span class="timer-icon">⏱</span>
+      <span id="timerDisplay">60:00</span>
+    </div>
+    <div class="progress-box">
+      <div class="prog-label">
+        <span id="progressLabel">Q 1 / 100</span>
+        <span id="answeredLabel">0 answered</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="progressFill" style="width:1%"></div></div>
+    </div>
+    <div class="answered-count" id="scorePreview"></div>
+  </div>
+  <div class="exam-wrap">
+    <div id="questionContainer"></div>
+  </div>
+  <div class="nav-bar">
+    <button class="btn btn-sec" id="prevBtn" onclick="navigate(-1)" disabled>← Prev</button>
+    <div class="q-nav-mini" id="qNavMini">1 / 100</div>
+    <button class="btn btn-pri" id="nextBtn" onclick="navigate(1)">Next →</button>
+    <button class="btn btn-submit" id="submitBtn" style="display:none" onclick="confirmSubmit()">Submit Exam ✓</button>
+  </div>
+</div>
+
+<!-- ═══════════════ RESULTS SCREEN ═══════════════ -->
+<div id="resultsScreen" class="screen">
+  <div class="results-header">
+    <div class="score-ring">
+      <svg width="160" height="160" viewBox="0 0 160 160">
+        <circle class="ring-bg" cx="80" cy="80" r="68"/>
+        <circle class="ring-fill" id="ringFill" cx="80" cy="80" r="68" stroke-dasharray="427.3" stroke-dashoffset="427.3"/>
+      </svg>
+      <div class="score-center">
+        <div class="score-num" id="scoreNum">0</div>
+        <div class="score-lbl">/ 100</div>
+      </div>
+    </div>
+    <div class="grade-banner" id="gradeBanner">—</div>
+    <p class="encouragement" id="encouragementText"></p>
+  </div>
+  <div class="stats-row">
+    <div class="stat-box"><div class="sn correct-num" id="correctCount">0</div><div class="sl">Correct ✓</div></div>
+    <div class="stat-box"><div class="sn wrong-num" id="wrongCount">0</div><div class="sl">Wrong ✗</div></div>
+    <div class="stat-box"><div class="sn skipped-num" id="skippedCount">0</div><div class="sl">Skipped</div></div>
+    <div class="stat-box"><div class="sn" id="percentNum" style="color:var(--accent)">0%</div><div class="sl">Score</div></div>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center">
+    <button class="btn-review" onclick="showReview()">🔍 Review Answers</button>
+    <button class="btn-retry" onclick="retryExam()">🔄 Retry Exam</button>
+  </div>
+</div>
+
+<!-- ═══════════════ REVIEW SCREEN ═══════════════ -->
+<div id="reviewScreen" class="screen">
+  <div class="review-wrap">
+    <div class="review-header">
+      <h2>Answer Review</h2>
+      <div class="filter-btns">
+        <button class="filter-btn active" onclick="filterReview('all',this)">All (100)</button>
+        <button class="filter-btn" onclick="filterReview('wrong',this)">Wrong ✗</button>
+        <button class="filter-btn" onclick="filterReview('correct',this)">Correct ✓</button>
+        <button class="filter-btn" onclick="filterReview('skipped',this)">Skipped</button>
+      </div>
+    </div>
+    <div id="reviewContainer"></div>
+    <button class="back-btn" onclick="showResults()">← Back to Results</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// QUESTION BANK – 100 questions across all lecture topics
+// ════════════════════════════════════════════════════════
+const QUESTION_BANK = [
+  // ── CHAPTER 1: Introduction to Technical Report Writing ──
+  {id:1,topic:"Ch1: Introduction",diff:"easy",q:"What is the primary purpose of a technical report?",choices:["To entertain the reader with creative stories","To narrate a personal experience","To recommend, instruct, inform, or persuade about a practical matter","To express the writer's personal opinions"],ans:2,trick:"Remember the 4 verbs: Recommend, Instruct, Inform, Persuade — none of them are 'entertain' or 'personal opinion'."},
+  {id:2,topic:"Ch1: Introduction",diff:"easy",q:"Which of the following is NOT typically a part of a technical report?",choices:["Abstract","Methodology","Personal diary entries","Bibliography"],ans:2,trick:"A personal diary is subjective and informal — everything in a technical report is objective and factual."},
+  {id:3,topic:"Ch1: Introduction",diff:"easy",q:"What does the abstract of a technical report include?",choices:["Only the writer's personal opinion","Detailed calculations and raw data","Purpose, scope, methods, findings, and conclusions","Photographs and charts only"],ans:2,trick:"The abstract covers WHY, HOW, WHAT, and SO WHAT — think of it as the report's DNA in miniature."},
+  {id:4,topic:"Ch1: Introduction",diff:"easy",q:"The abstract should represent approximately what percentage of the full report?",choices:["50%","25%","10%","1%"],ans:2,trick:"10% — one tenth. It's a summary, not a substitute."},
+  {id:5,topic:"Ch1: Introduction",diff:"easy",q:"What does the bibliography section of a technical report contain?",choices:["Technical terms and definitions","Graphs and tables","All sources referenced in the report","Personal experiences"],ans:2,trick:"Bibliography = 'biblio' (book/writing) + 'graphy' (writing about). It lists writing sources."},
+  {id:6,topic:"Ch1: Introduction",diff:"easy",q:"What section of a technical report contains supplementary material like charts and questionnaires?",choices:["Abstract","Introduction","Appendices","Table of Contents"],ans:2,trick:"Appendices are attached at the end — like an appendix in a body, they're supplementary, not central."},
+  {id:7,topic:"Ch1: Introduction",diff:"medium",q:"In which order should items appear in the Table of Contents?",choices:["Title page is listed first, then appendices","All sections from the Introduction onward, using DNS, with page numbers","Random listing of all headings","Only the main headings, not sub-sections"],ans:1,trick:"The Table of Contents STARTS from Introduction (not Title Page/ToC itself) and uses the Decimal Numbering System (DNS)."},
+  {id:8,topic:"Ch1: Introduction",diff:"medium",q:"What should NOT be included in the conclusion of a technical report?",choices:["Summary of main points","Brand new information not discussed earlier","Research findings","Final thoughts based on data"],ans:1,trick:"Conclusions close the loop — they never introduce new information. New info belongs in the Discussion or Results section."},
+  {id:9,topic:"Ch1: Introduction",diff:"medium",q:"How should recommendations be presented in a technical report?",choices:["Alphabetically","In ascending order of importance","In descending order of importance (most important first)","Randomly"],ans:2,trick:"Descending = most important first. Executives read top-down and may stop early — lead with the biggest recommendation."},
+  {id:10,topic:"Ch1: Introduction",diff:"medium",q:"The Decimal Numbering System (DNS) is used primarily in which section?",choices:["Appendices","Table of Contents","Title Page","Abstract"],ans:1,trick:"DNS (1.1, 1.2, 2.1…) organises the hierarchy of sections in the Table of Contents."},
+  {id:11,topic:"Ch1: Introduction",diff:"medium",q:"What makes a technical report considered trustworthy?",choices:["Use of long and impressive words","Complete and accurate facts","The author's popularity","Creative and flowery language"],ans:1,trick:"Trustworthiness = factual accuracy. No amount of fancy vocabulary replaces verified, complete data."},
+  {id:12,topic:"Ch1: Introduction",diff:"medium",q:"Which section explains HOW the research was conducted?",choices:["Abstract","Methodology","Introduction","Title Page"],ans:1,trick:"Methodology = 'method' + 'ology'. It describes the method/process used."},
+  {id:13,topic:"Ch1: Introduction",diff:"medium",q:"What should the Introduction of a technical report NOT include?",choices:["What the report is about","Background information","Scope of the report","Research results and final conclusions"],ans:3,trick:"Introduction sets the stage; it never reveals the ending. Results stay in the Results/Conclusion sections."},
+  {id:14,topic:"Ch1: Introduction",diff:"hard",q:"A report writer chooses to present data in memo format. This indicates the report is most likely:",choices:["A long formal report with over 100 pages","A short report for quick communication","An oral presentation","An analytical report requiring detailed statistics"],ans:1,trick:"Memo = short. The three formats scale: memo (short) → letter (medium) → formal report (long)."},
+  {id:15,topic:"Ch1: Introduction",diff:"hard",q:"Which statement BEST distinguishes the abstract from the introduction in a technical report?",choices:["The abstract mentions background information; the introduction does not","The abstract is a self-contained synopsis written after the report; the introduction sets context before it","The introduction is shorter than the abstract","The abstract includes detailed methodology; the introduction does not"],ans:1,trick:"Abstract = written LAST, standalone summary. Introduction = written as part of the report, provides context/background."},
+  {id:16,topic:"Ch1: Introduction",diff:"hard",q:"Which of the following is a characteristic that differentiates a technical report from a general essay?",choices:["Technical reports use first-person narrative","Technical reports focus on facts, technical terminology, and practical matters","General essays are always shorter than technical reports","Technical reports are always informal"],ans:1,trick:"Key difference: technical reports use technical terminology, focus on practical matters, and are objective — essays allow personal voice."},
+
+  // ── CHAPTER 2: Intended Audience ──
+  {id:17,topic:"Ch2: Intended Audience",diff:"easy",q:"Which of the following is NOT a typical intended audience for technical reports?",choices:["Experts","Technicians","Fiction novelists","Non-specialists"],ans:2,trick:"The four audiences are: Experts, Technicians, Managers, Non-specialists. Novelists are not part of this framework."},
+  {id:18,topic:"Ch2: Intended Audience",diff:"easy",q:"Who among the following has the MOST advanced technical knowledge?",choices:["Managers","Technicians","Experts","Non-specialists"],ans:2,trick:"Experts have advanced degrees and work in R&D or academic settings — they sit at the top of the technical knowledge pyramid."},
+  {id:19,topic:"Ch2: Intended Audience",diff:"easy",q:"Technicians are primarily responsible for:",choices:["Making business and economic decisions","Building, operating, maintaining, and repairing technical systems","Conducting academic research","Approving legal documentation"],ans:1,trick:"Technicians BUILD and MAINTAIN. Experts design; managers decide; non-specialists just use."},
+  {id:20,topic:"Ch2: Intended Audience",diff:"easy",q:"Which audience type includes those with the LEAST technical knowledge?",choices:["Experts","Non-specialists","Managers","Technicians"],ans:1,trick:"Non-specialists are curious about a topic for practical reasons but lack deep technical training."},
+  {id:21,topic:"Ch2: Intended Audience",diff:"medium",q:"What is the main goal of audience adaptation in technical writing?",choices:["To increase the word count of the report","To change the level of information to meet the audience's needs","To impress readers with technical vocabulary","To follow a strict template"],ans:1,trick:"Adaptation = adjusting complexity. You never add information the audience doesn't need."},
+  {id:22,topic:"Ch2: Intended Audience",diff:"medium",q:"Which technique improves coherence in a technical report?",choices:["Using fancy and sophisticated language","Long unbroken paragraphs","Frequent use of transitional words and phrases","Random paragraph numbering"],ans:2,trick:"Transitional words (however, therefore, furthermore) are the 'glue' that connects ideas — they create coherence."},
+  {id:23,topic:"Ch2: Intended Audience",diff:"medium",q:"For non-specialist audiences, which of the following should a writer do?",choices:["Use as much jargon as possible","Add examples and define technical terms","Keep paragraphs long and dense","Assume they understand everything"],ans:1,trick:"Non-specialists need a 'bridge' — examples and definitions translate technical concepts into understandable language."},
+  {id:24,topic:"Ch2: Intended Audience",diff:"medium",q:"Audience analysis primarily helps the writer determine the audience's:",choices:["Budget and financial status","Social media preferences","Background knowledge, experience, and training","Age and demographic group"],ans:2,trick:"Audience analysis = understanding what the reader already knows so you can pitch the content at the right level."},
+  {id:25,topic:"Ch2: Intended Audience",diff:"medium",q:"Which audience group is most likely to make economic and administrative decisions based on a report?",choices:["Technicians","Non-specialists","Experts","Managers"],ans:3,trick:"Managers deal with business, economic, administrative, legal, and political decisions — they act on the report's conclusions."},
+  {id:26,topic:"Ch2: Intended Audience",diff:"medium",q:"Information in technical reports should be presented in:",choices:["One continuous paragraph","Digestible chunks for easier comprehension","Reverse chronological order","As many pages as possible"],ans:1,trick:"'Chunking' information breaks it into manageable pieces — readers digest it step by step rather than being overwhelmed."},
+  {id:27,topic:"Ch2: Intended Audience",diff:"hard",q:"A technical writer adds a glossary at the beginning of a report. This suggests the primary audience is most likely:",choices:["A team of PhD researchers","Senior R&D engineers","Non-specialists or mixed audiences","Expert technicians"],ans:2,trick:"Glossaries are added when the audience is not expected to know technical terms — non-specialists or mixed audiences need this bridge."},
+  {id:28,topic:"Ch2: Intended Audience",diff:"hard",q:"Which combination BEST represents the purpose of cross-references in a technical report?",choices:["They entertain readers and add length","They help locate important information efficiently and improve navigation","They replace the need for a bibliography","They are used only in formal reports"],ans:1,trick:"Cross-references say 'see Section 3.2' — they help ALL audience types find related information without re-reading the whole document."},
+  {id:29,topic:"Ch2: Intended Audience",diff:"hard",q:"A report written with excessive jargon and no explanations is MOST appropriate for which audience?",choices:["Technicians needing operational guides","Non-specialists with practical needs","Experts in the same technical field","Managers making business decisions"],ans:2,trick:"Only experts can handle dense jargon without explanations — they already know the field inside out."},
+
+  // ── CHAPTER 3: Types of Reports ──
+  {id:30,topic:"Ch3: Types of Reports",diff:"easy",q:"Which type of report uses a specific prescribed template, is lengthy, and avoids personal pronouns?",choices:["Informal report","Oral report","Formal report","Routine report"],ans:2,trick:"Formal report = prescribed form + detailed + no personal pronouns (I, we). Annual reports and theses are classic examples."},
+  {id:31,topic:"Ch3: Types of Reports",diff:"easy",q:"An informal report is BEST described as:",choices:["Lengthy, structured, and external","Brief, flexible, often internal communication","Highly detailed with complex charts","Used only for special occasions"],ans:1,trick:"Informal = brief + flexible + internal. Lab reports and daily production reports are examples."},
+  {id:32,topic:"Ch3: Types of Reports",diff:"easy",q:"Which type of report is prepared at regular intervals (daily, weekly, monthly)?",choices:["Special report","Formal report","Analytical report","Routine report"],ans:3,trick:"Routine = regular schedule. Sales reports and cost reports follow predictable cycles."},
+  {id:33,topic:"Ch3: Types of Reports",diff:"easy",q:"Which report type presents data WITHOUT analysis, interpretation, or recommendations?",choices:["Analytical report","Informational report","Formal report","Special report"],ans:1,trick:"Informational = information only, no analysis. If it just reports facts (conference report, seminar report), it's informational."},
+  {id:34,topic:"Ch3: Types of Reports",diff:"easy",q:"Which type of report INCLUDES analysis, interpretation, and recommendations?",choices:["Oral report","Routine report","Informational report","Analytical report"],ans:3,trick:"Analytical = analysis + interpretation + recommendations. Project reports and feasibility studies require this depth."},
+  {id:35,topic:"Ch3: Types of Reports",diff:"medium",q:"Which of the following is an example of a FORMAL report?",choices:["A daily work summary email","An annual company report","A chat between coworkers","A short trip report"],ans:1,trick:"Annual company reports are formal — they follow a prescribed structure, are lengthy, and are meant for high-level audiences."},
+  {id:36,topic:"Ch3: Types of Reports",diff:"medium",q:"Which type of report is presented through face-to-face verbal communication?",choices:["Informal report","Oral report","Analytical report","Routine report"],ans:1,trick:"Oral = spoken. Accident reports and conference presentations can be oral. It's the only type that is NOT written."},
+  {id:37,topic:"Ch3: Types of Reports",diff:"medium",q:"What is a KEY difference between a routine report and a special report?",choices:["Routine reports are always longer","Special reports address unique issues requiring immediate attention; routine reports follow regular schedules","Routine reports include recommendations; special ones do not","Special reports are always informal"],ans:1,trick:"Special = triggered by unique events (incident, investigation). Routine = predictable, scheduled."},
+  {id:38,topic:"Ch3: Types of Reports",diff:"medium",q:"An enquiry report and a research thesis are examples of which type of report?",choices:["Routine report","Informational report","Special report","Written report"],ans:2,trick:"Special reports are one-time, addressing specific issues or occasions — enquiries and theses fit this category."},
+  {id:39,topic:"Ch3: Types of Reports",diff:"medium",q:"What is NOT a type of report covered in the course?",choices:["Formal Report","Informal Report","Routine Report","Fictional Report"],ans:3,trick:"The 8 types: Formal, Informal, Routine, Special, Oral, Written, Informational, Analytical. 'Fictional' is not one of them."},
+  {id:40,topic:"Ch3: Types of Reports",diff:"hard",q:"A feasibility study assessing whether a new business expansion is viable is BEST classified as:",choices:["A routine informational report","An informal oral report","An analytical special report","A formal routine report"],ans:2,trick:"Feasibility study = one-time (special) + includes analysis and recommendations (analytical). The combination = analytical special report."},
+  {id:41,topic:"Ch3: Types of Reports",diff:"hard",q:"Which statement BEST distinguishes an informational report from an analytical report?",choices:["An informational report is always shorter","An informational report presents facts only; an analytical report interprets them and offers recommendations","Analytical reports never include data","Informational reports are always formal"],ans:1,trick:"Key formula: Informational = facts only. Analytical = facts + interpretation + recommendations. The interpretation is the distinguishing factor."},
+  {id:42,topic:"Ch3: Types of Reports",diff:"hard",q:"A monthly sales report tracking KPIs is classified as which type of report combination?",choices:["Formal and Special","Routine and Informational","Analytical and Oral","Informal and Special"],ans:1,trick:"Monthly = routine (regular schedule). KPI tracking without interpretation = informational. Sales reports are the textbook example of Routine + Informational."},
+
+  // ── CHAPTER 4: 7 C's of Effective Communication ──
+  {id:43,topic:"Ch4: 7 C's",diff:"easy",q:"Which of the 7 C's ensures that all necessary information is included in a message?",choices:["Conciseness","Clarity","Completeness","Correctness"],ans:2,trick:"Completeness = nothing missing. Ask: 'Has the reader received ALL information needed to act?' If yes, it's complete."},
+  {id:44,topic:"Ch4: 7 C's",diff:"easy",q:"Clarity in communication primarily helps to:",choices:["Increase word count","Avoid misinterpretation and ensure the message is easily understood","Use vague language","Make the report more decorative"],ans:1,trick:"Clarity = one meaning. Clear writing is like a clean window — the reader sees through to the message without distortion."},
+  {id:45,topic:"Ch4: 7 C's",diff:"easy",q:"Which C of effective communication refers to using accurate grammar, spelling, and verified facts?",choices:["Conciseness","Coherence","Correctness","Completeness"],ans:2,trick:"Correctness = accuracy in grammar, spelling, punctuation, AND facts. All four must be correct."},
+  {id:46,topic:"Ch4: 7 C's",diff:"medium",q:"A benefit of conciseness in technical writing is that it:",choices:["Increases word count","Saves the reader's time by eliminating unnecessary details","Makes content more complex","Reduces the credibility of the report"],ans:1,trick:"Conciseness = saving time. Replace 'in spite of the fact that' with 'although' — you respect your reader's time."},
+  {id:47,topic:"Ch4: 7 C's",diff:"medium",q:"Coherence in a report ensures that:",choices:["Technical jargon is maximized","All sentences are isolated and self-contained","Ideas are logically connected and flow smoothly","The report is filled with unrelated information"],ans:2,trick:"Coherence = logical connection. Transitional words are the key tool for building coherence."},
+  {id:48,topic:"Ch4: 7 C's",diff:"medium",q:"Which of the 7 C's is most directly supported by using transitional words and clear topic sentences?",choices:["Correctness","Conciseness","Coherence","Completeness"],ans:2,trick:"Transitional words (therefore, however, in addition) build the logical bridges between ideas — that's coherence."},
+  {id:49,topic:"Ch4: 7 C's",diff:"hard",q:"A manager writes a report but forgets to include the budget figures required for a decision. Which C is violated?",choices:["Conciseness","Correctness","Clarity","Completeness"],ans:3,trick:"Missing crucial information = incomplete report. Completeness means ALL required information is present."},
+  {id:50,topic:"Ch4: 7 C's",diff:"hard",q:"Which combination of the 7 C's is MOST critical for maintaining a report's credibility and trustworthiness?",choices:["Clarity and Conciseness","Correctness and Completeness","Concreteness and Courtesy","Coherence and Conciseness"],ans:1,trick:"Correctness (accurate facts/grammar) + Completeness (nothing missing) = the foundation of credibility. Without them, even a beautiful report fails."},
+
+  // ── CHAPTER 5: Scientific Writing Style ──
+  {id:51,topic:"Ch5: Scientific Writing",diff:"easy",q:"In scientific writing style, what should be LIMITED in use?",choices:["Technical terms","Passive voice","Personal pronouns (I, you, we)","Facts and data"],ans:2,trick:"Scientific writing is objective — limit 'I', 'we', 'you'. Say 'The results indicate…' not 'I found…'"},
+  {id:52,topic:"Ch5: Scientific Writing",diff:"easy",q:"What does 'be concise' mean in scientific writing?",choices:["Write as much as possible","Use one word instead of a phrase where possible","Always use the passive voice","Avoid using examples"],ans:1,trick:"Concise = fewer words, same meaning. 'Get around' = 'avoid'. One word beats a wordy phrase every time."},
+  {id:53,topic:"Ch5: Scientific Writing",diff:"easy",q:"Scientific writing should NOT use contractions (isn't, doesn't, it's) because:",choices:["They are too short","Formal writing requires full forms (is not, does not, it is)","They are grammatically wrong","They confuse technical readers"],ans:1,trick:"Contractions are informal speech patterns. In academic/scientific writing, always write the full form."},
+  {id:54,topic:"Ch5: Scientific Writing",diff:"easy",q:"In the IMRaD structure of a scientific report, what does 'M' stand for?",choices:["Management","Materials and Methods","Mapping","Measurement"],ans:1,trick:"IMRaD = Introduction, Materials & Methods, Results, and Discussion. The M is always Materials and Methods."},
+  {id:55,topic:"Ch5: Scientific Writing",diff:"medium",q:"Which of the following should NOT be included in the Abstract of a scientific report?",choices:["Objectives and scope","Summary of results","Literature citations and formulae","Brief reference to methods"],ans:2,trick:"Abstracts exclude: literature citations, formulae, abbreviations, and references to tables. These belong in the body."},
+  {id:56,topic:"Ch5: Scientific Writing",diff:"medium",q:"A Table of Contents is required in a scientific report only when the report has:",choices:["More than 2 pages","More than 4 pages","6 or more pages","Exactly 10 pages"],ans:2,trick:"The threshold is 6 pages. Below that, a ToC is unnecessary overhead."},
+  {id:57,topic:"Ch5: Scientific Writing",diff:"medium",q:"The Results section of a scientific report should be written in which voice and tense?",choices:["Active voice, present tense","Passive voice, past tense","Active voice, future tense","Passive voice, present tense"],ans:1,trick:"Results describe what WAS done and found (past tense) by the experiment, not the researcher (passive voice). Example: 'A 99% accuracy rate was obtained.'"},
+  {id:58,topic:"Ch5: Scientific Writing",diff:"medium",q:"Which element should NOT be included in the Results section?",choices:["Graphs and tables","Brief statements of findings","What was EXPECTED to be found","Reference to figures in parentheses"],ans:2,trick:"Results = ONLY observed data. Expectations and comparisons to literature belong in the Discussion section."},
+  {id:59,topic:"Ch5: Scientific Writing",diff:"medium",q:"What is the ideal length of a title in a scientific report?",choices:["1–3 words","4–12 words","15–20 words","No limit"],ans:1,trick:"4–12 words: short, specific, descriptive, containing keywords. Long titles bury the point."},
+  {id:60,topic:"Ch5: Scientific Writing",diff:"hard",q:"Although the Abstract appears FIRST in a scientific report, it is best to write it:",choices:["Before conducting the research","Immediately after the Introduction","Last, after all results and conclusions are available","As part of the Introduction"],ans:2,trick:"Write Abstract LAST — you can only summarize what you already have. Despite appearing first, it's the final writing task."},
+  {id:61,topic:"Ch5: Scientific Writing",diff:"hard",q:"In scientific writing, if a sentence has 4 or more clauses, the writer should:",choices:["Keep it as one sentence for detail","Split it into two sentences with 3 or fewer clauses each","Add more conjunctions","Place it in the appendix"],ans:1,trick:"Long sentences with 4+ clauses confuse readers. Split into two sentences of ≤3 clauses each for clarity."},
+  {id:62,topic:"Ch5: Scientific Writing",diff:"hard",q:"The Discussion section of a scientific report primarily answers which question?",choices:["How was the research conducted?","What were the materials used?","What do the results MEAN?","When was the experiment performed?"],ans:2,trick:"Discussion = interpretation. Results tell you WHAT happened; Discussion explains WHAT IT MEANS and compares to literature."},
+
+  // ── CHAPTER 6: Process/Stages of Technical Writing ──
+  {id:63,topic:"Ch6: Stages of Writing",diff:"easy",q:"Which of the following BEST describes the first stage of technical writing?",choices:["Editing and proofreading","Planning and understanding the purpose","Writing the conclusion","Formatting the document"],ans:1,trick:"Every technical writing process begins with planning — purpose, audience, scope. You can't build without a blueprint."},
+  {id:64,topic:"Ch6: Stages of Writing",diff:"medium",q:"According to the course, which stage of technical writing is considered MOST critical?",choices:["Editing","Research and data collection","Planning","Formatting"],ans:2,trick:"This was specifically mentioned by the professor as a key exam point. Planning/pre-writing is foundational — errors here cascade through every stage."},
+  {id:65,topic:"Ch6: Stages of Writing",diff:"medium",q:"How many stages does the technical writing process consist of?",choices:["5","6","7","9"],ans:2,trick:"7 stages — this number was explicitly highlighted by the professor as important for the final exam."},
+  {id:66,topic:"Ch6: Stages of Writing",diff:"hard",q:"When writing a scientific report on novel research using the seven stages, which stage ensures that the report reaches the correct audience effectively?",choices:["Research and data collection","Drafting the content","Audience analysis and planning","Editing for grammar"],ans:2,trick:"Stage 1 (Planning) includes audience analysis — determining who reads it shapes every subsequent decision about content, tone, and complexity."},
+
+  // ── CHAPTER 7: Article Types ──
+  {id:67,topic:"Ch7: Article Types",diff:"easy",q:"What does 'IMRaD' stand for in the context of scientific articles?",choices:["Introduction, Methods, Results and Discussion","Index, Materials, Review and Data","Interpretation, Methodology, Research and Development","Introduction, Management, Report and Diagrams"],ans:0,trick:"IMRaD = Introduction, Materials & Methods, Results, and Discussion. It's the universal structure for scientific articles worldwide."},
+  {id:68,topic:"Ch7: Article Types",diff:"medium",q:"Which type of article reports on a unique patient case with clinical details, treatment, and outcomes?",choices:["Research article","Review article","Case report","Editorial"],ans:2,trick:"Case report = individual patient/case. The professor specifically mentioned famous medical case reports as a final exam topic."},
+  {id:69,topic:"Ch7: Article Types",diff:"medium",q:"A review article primarily:",choices:["Presents original experimental data","Summarizes and synthesizes existing research on a topic","Reports a single patient case","Expresses the journal editor's opinion"],ans:1,trick:"Review article = literature review of existing work. It synthesizes — it does NOT produce new experimental data."},
+  {id:70,topic:"Ch7: Article Types",diff:"hard",q:"The IMRaD structure is most commonly associated with which type of academic writing?",choices:["Informal reports","Scientific and research articles","Business memos","Oral presentations"],ans:1,trick:"IMRaD is the standard structure for scientific papers published in academic journals — it's internationally recognized."},
+
+  // ── CHAPTER 8: Literature Review ──
+  {id:71,topic:"Ch8: Literature Review",diff:"easy",q:"What is the primary purpose of a literature review?",choices:["To present original experimental findings","To survey, summarize, and synthesize existing research on a topic","To replace the methodology section","To list all books in the library"],ans:1,trick:"Literature review = surveying the landscape. You present what others have found BEFORE explaining your own work."},
+  {id:72,topic:"Ch8: Literature Review",diff:"easy",q:"How should key terminology be treated in the introduction of a literature review?",choices:["Ignored completely","Assumed to be known by all readers","Clearly defined","Hidden in the appendices"],ans:2,trick:"Define key terms at the start — never assume the reader shares your technical vocabulary."},
+  {id:73,topic:"Ch8: Literature Review",diff:"medium",q:"A well-written literature review demonstrates:",choices:["Use of technical jargon exclusively","Repetition of author names","Critical engagement with sources","Complete avoidance of summarizing"],ans:2,trick:"Critical engagement = you don't just list what others said, you evaluate, compare, and analyze their contributions."},
+  {id:74,topic:"Ch8: Literature Review",diff:"medium",q:"Why might further research be recommended at the end of a literature review?",choices:["Because journals require it as a formality","To confirm the writer's assumptions","To explore identified gaps or unresolved issues in the literature","For personal opinion sharing"],ans:2,trick:"Gaps in literature = unanswered questions. Identifying them justifies your own research and contributes to the field."},
+  {id:75,topic:"Ch8: Literature Review",diff:"medium",q:"What aspect is MOST crucial when selecting sources for a literature review?",choices:["The source is trending on social media","The source is on the internet","The source is appropriate and relevant to the research topic","The source has many citations"],ans:2,trick:"Relevance is king. A source from a prestigious journal means nothing if it doesn't relate to your topic."},
+  {id:76,topic:"Ch8: Literature Review",diff:"hard",q:"When citing others' work in a literature review, which practice should be AVOIDED?",choices:["Using careful verb choices","Mindful citation structure","Misrepresenting or distorting the source's findings","Thoughtful attribution"],ans:2,trick:"Misrepresentation = academic dishonesty. You must accurately represent what the original author claimed, even if you disagree."},
+  {id:77,topic:"Ch8: Literature Review",diff:"hard",q:"Which organization is MOST suitable for presenting the body of a literature review?",choices:["Random order","A logical structure chosen to serve the review's argument","Personal preference without justification","Repetition of the abstract"],ans:1,trick:"The structure (chronological, thematic, methodological) should serve your argument — it's a deliberate rhetorical choice, not arbitrary."},
+
+  // ── CHAPTER 9: Plagiarism ──
+  {id:78,topic:"Ch9: Plagiarism",diff:"easy",q:"What is plagiarism?",choices:["Creating original ideas from scratch","Copying someone's ideas or work without acknowledgment","Summarizing your own previous work","Editing and improving your own notes"],ans:1,trick:"Plagiarism = theft of intellectual property. The key word is 'without acknowledgment' — even borrowing requires citation."},
+  {id:79,topic:"Ch9: Plagiarism",diff:"easy",q:"Which of the following is an example of plagiarism?",choices:["Writing your own original thoughts","Paraphrasing with proper citation","Copying a paragraph without quotation marks or citation","Summarizing an article in your own words with citation"],ans:2,trick:"Copying without citation/quotes = plagiarism, regardless of whether you meant to. Intent doesn't excuse it."},
+  {id:80,topic:"Ch9: Plagiarism",diff:"easy",q:"Paraphrasing without citing the original source is considered:",choices:["Good academic practice","Original writing","Plagiarism","Research"],ans:2,trick:"Paraphrase + no citation = plagiarism. The idea is still borrowed; you must credit the source even when you rewrite it."},
+  {id:81,topic:"Ch9: Plagiarism",diff:"easy",q:"Which tool is specifically recommended in the course for paraphrasing assistance?",choices:["Word","Grammarly","Quillbot","Excel"],ans:2,trick:"Quillbot was specifically recommended in the course material as a paraphrasing tool."},
+  {id:82,topic:"Ch9: Plagiarism",diff:"medium",q:"When quoting directly from a source, you MUST:",choices:["Use italics only","Change some words to avoid detection","Use quotation marks AND cite the source","Highlight the text in the document"],ans:2,trick:"Direct quote requires BOTH quotation marks AND citation. One without the other is insufficient."},
+  {id:83,topic:"Ch9: Plagiarism",diff:"medium",q:"Submitting work that was already submitted for assessment in another course is:",choices:["Acceptable since it is your own work","A form of self-plagiarism","Encouraged to save time","Allowed with the professor's permission"],ans:1,trick:"Self-plagiarism = reusing your own previously assessed work. Your own work can still be plagiarism if submitted twice without permission."},
+  {id:84,topic:"Ch9: Plagiarism",diff:"medium",q:"What can lead to UNINTENTIONAL plagiarism?",choices:["Careful referencing and note-taking","Good citation habits","Poor note-taking that fails to distinguish quotes from paraphrases","Citing all sources thoroughly"],ans:2,trick:"Unintentional plagiarism often happens when notes don't distinguish original quotes from paraphrased ideas — always mark sources during note-taking."},
+  {id:85,topic:"Ch9: Plagiarism",diff:"medium",q:"Which of the following is NOT an example of plagiarism?",choices:["Submitting a previously assessed assignment","Paraphrasing with proper citation and reference","Presenting someone else's image as your own","Copying another student's work"],ans:1,trick:"Paraphrase WITH citation = correct academic practice. Citation is the magic ingredient that separates research from plagiarism."},
+  {id:86,topic:"Ch9: Plagiarism",diff:"medium",q:"Changing from active to passive voice when paraphrasing is:",choices:["A form of plagiarism","A valid paraphrasing strategy","Not allowed in academic writing","Redundant and unnecessary"],ans:1,trick:"Changing voice is a LEGITIMATE paraphrasing technique — it restructures the sentence while preserving meaning."},
+  {id:87,topic:"Ch9: Plagiarism",diff:"hard",q:"A student copies a paragraph, changes three words, and submits without citation. This is:",choices:["Acceptable paraphrasing","Plagiarism — changing a few words without citation does not constitute paraphrasing","Original writing since words were changed","Summarizing"],ans:1,trick:"Changing 3 words is NOT paraphrasing — it's cosmetic alteration. True paraphrasing requires FULL restructuring AND citation."},
+  {id:88,topic:"Ch9: Plagiarism",diff:"hard",q:"Why is referencing important in academic writing?",choices:["To confuse the reader with extra pages","To increase the word count artificially","To give credit to original authors and maintain academic integrity","To appear more intelligent"],ans:2,trick:"Referencing = academic honesty. It credits intellectual labour, allows readers to verify claims, and builds the writer's credibility."},
+  {id:89,topic:"Ch9: Plagiarism",diff:"hard",q:"Which of the following paraphrasing methods is NOT valid?",choices:["Rewriting in your own words AND citing the source","Changing sentence structure AND citing the source","Using synonyms and passive voice WITH citation","Rewriting in your own words WITHOUT any citation"],ans:3,trick:"Every paraphrasing method requires citation. Rewriting without citation = plagiarism, regardless of how thoroughly you've changed the words."},
+
+  // ── MIXED TOPICS: Tricky/Advanced Questions ──
+  {id:90,topic:"Mixed: Tricky",diff:"hard",q:"Which section of a technical report should NEVER introduce new information?",choices:["Introduction","Methodology","Results","Conclusion"],ans:3,trick:"Conclusion = closing summary only. New information in the conclusion is a structural error — it confuses readers who expect closure."},
+  {id:91,topic:"Mixed: Tricky",diff:"hard",q:"A student writes: 'The experiment was conducted successfully and the results were amazing.' What scientific writing rule is violated?",choices:["Use of passive voice","Use of past tense","Use of emotionally loaded words ('amazing') — violates objectivity","Use of technical terminology"],ans:2,trick:"'Amazing' is subjective/emotional language. Scientific writing requires objectivity — replace with quantitative data: '99% accuracy was achieved.'"},
+  {id:92,topic:"Mixed: Tricky",diff:"hard",q:"Which report type combination demonstrates the HIGHEST level of analysis and investigation?",choices:["Routine + Informational","Informal + Oral","Formal + Analytical","Special + Written"],ans:2,trick:"Analytical reports show the highest analysis level. Formal structure adds rigor. Formal + Analytical = most rigorous report type."},
+  {id:93,topic:"Mixed: Tricky",diff:"hard",q:"A writer includes the word 'then' repeatedly to describe sequential steps. According to scientific writing guidelines, this should be:",choices:["Encouraged for clarity","Avoided — the order of steps is self-evident from their written sequence","Replaced with 'subsequently' each time","Used only in the Introduction"],ans:1,trick:"The course explicitly says: Don't keep using 'then' — readers understand steps are sequential. Overuse is redundant and weakens the writing."},
+  {id:94,topic:"Mixed: Tricky",diff:"hard",q:"The following abstract contains an error: 'The results showed that Table 1 compares accuracy rates…'. What is wrong?",choices:["Nothing is wrong","Tables should not be in the Results","Abstracts should NOT reference tables or figures","Table 1 should be referenced in the appendices"],ans:2,trick:"Abstracts must be SELF-CONTAINED — they cannot reference tables, figures, or formulae because readers may read the abstract alone."},
+  {id:95,topic:"Mixed: Tricky",diff:"medium",q:"Which referencing style is commonly used in technical and engineering reports?",choices:["APA only","MLA only","IEEE","Chicago only"],ans:2,trick:"IEEE (Institute of Electrical and Electronics Engineers) is the dominant citation style in technical and engineering fields."},
+  {id:96,topic:"Mixed: Tricky",diff:"medium",q:"What is the MAIN benefit of using graphical elements (charts, graphs) in a technical report?",choices:["To make the report look colourful and attractive","To increase the page count","To visually present data for better understanding","To replace all written explanations"],ans:2,trick:"Visuals serve data communication — they make complex data instantly comprehensible. They complement text, they do not replace it."},
+  {id:97,topic:"Mixed: Tricky",diff:"medium",q:"Which section of a scientific report allows massive quantities of raw data that is too detailed for the main body?",choices:["Abstract","Introduction","Discussion","Appendices"],ans:3,trick:"Appendices = overflow storage for raw/supplementary data (statistics, questionnaires, full datasets) too detailed for the main narrative."},
+  {id:98,topic:"Mixed: Tricky",diff:"hard",q:"A writer states: 'Previous research supports our hypothesis' without citing any source. This violates which principle?",choices:["Conciseness","Correctness and proper citation","Coherence","Completeness of the abstract"],ans:1,trick:"Unsupported claims = lack of correctness. Every factual statement about existing research MUST be backed by a citation."},
+  {id:99,topic:"Mixed: Tricky",diff:"hard",q:"Which of the following BEST explains why the abstract is written LAST despite appearing first in the report?",choices:["It is the easiest section to write","It requires the complete results and conclusions to accurately summarize the report","It is always written by a different author","Writing it last reduces word count"],ans:1,trick:"You cannot summarize what you haven't yet written. The abstract is accurate only when ALL sections are complete — hence written last."},
+  {id:100,topic:"Mixed: Tricky",diff:"hard",q:"A report's introduction states the scope as 'This report will NOT cover economic analysis.' What purpose does this serve?",choices:["It is a mistake — scope only covers what IS included","It defines the boundaries (what IS and IS NOT covered), preventing reader misexpectation","It should be placed in the conclusion","It belongs only in the abstract"],ans:1,trick:"Scope = both inclusions AND exclusions. Stating what you won't cover is just as important — it manages reader expectations and prevents confusion."}
+];
+
+// ════════════════════════════════════════════════════════
+// EXAM STATE
+// ════════════════════════════════════════════════════════
+let questions = [];
+let userAnswers = [];
+let currentQ = 0;
+let timerInterval = null;
+let secondsLeft = 60 * 60;
+let examSubmitted = false;
+let reviewFilter = 'all';
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startExam() {
+  // Shuffle questions and answers
+  questions = shuffle(QUESTION_BANK).map(q => {
+    const shuffledChoices = shuffle(q.choices.map((c, i) => ({text: c, origIdx: i})));
+    const newAns = shuffledChoices.findIndex(c => c.origIdx === q.ans);
+    return {...q, shuffledChoices, shuffledAns: newAns};
+  });
+  userAnswers = new Array(100).fill(-1);
+  currentQ = 0;
+  secondsLeft = 60 * 60;
+  examSubmitted = false;
+
+  showScreen('examScreen');
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    secondsLeft--;
+    updateTimerDisplay();
+    if (secondsLeft <= 0) {
+      clearInterval(timerInterval);
+      submitExam();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+  const s = (secondsLeft % 60).toString().padStart(2, '0');
+  const el = document.getElementById('timerDisplay');
+  el.textContent = `${m}:${s}`;
+  el.className = '';
+  if (secondsLeft <= 300) el.classList.add('danger');
+  else if (secondsLeft <= 600) el.classList.add('warning');
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  const totalQ = questions.length;
+
+  // Update header
+  document.getElementById('progressLabel').textContent = `Q ${currentQ + 1} / ${totalQ}`;
+  const answered = userAnswers.filter(a => a !== -1).length;
+  document.getElementById('answeredLabel').textContent = `${answered} answered`;
+  document.getElementById('progressFill').style.width = `${((currentQ + 1) / totalQ) * 100}%`;
+  document.getElementById('qNavMini').textContent = `${currentQ + 1} / ${totalQ}`;
+
+  // Nav buttons
+  document.getElementById('prevBtn').disabled = currentQ === 0;
+  document.getElementById('nextBtn').style.display = currentQ < totalQ - 1 ? 'inline-flex' : 'none';
+  document.getElementById('submitBtn').style.display = currentQ === totalQ - 1 ? 'inline-flex' : 'none';
+
+  // Render question card
+  const diffClass = q.diff === 'easy' ? 'diff-easy' : q.diff === 'medium' ? 'diff-medium' : 'diff-hard';
+  const diffLabel = q.diff.charAt(0).toUpperCase() + q.diff.slice(1);
+  const labels = ['A', 'B', 'C', 'D'];
+
+  let choicesHTML = q.shuffledChoices.map((c, i) => `
+    <div class="choice${userAnswers[currentQ] === i ? ' selected' : ''}" onclick="selectAnswer(${i})">
+      <span class="choice-label">${labels[i]}</span>
+      <span class="choice-text">${c.text}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('questionContainer').innerHTML = `
+    <div class="q-card">
+      <div class="q-meta">
+        <span class="q-num">Q${currentQ + 1}</span>
+        <span class="diff-badge ${diffClass}">${diffLabel}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:auto">${q.topic}</span>
+      </div>
+      <div class="q-text">${q.q}</div>
+      <div class="choices">${choicesHTML}</div>
+    </div>
+  `;
+}
+
+function selectAnswer(idx) {
+  if (examSubmitted) return;
+  userAnswers[currentQ] = idx;
+  renderQuestion();
+}
+
+function navigate(dir) {
+  const newQ = currentQ + dir;
+  if (newQ < 0 || newQ >= questions.length) return;
+  currentQ = newQ;
+  renderQuestion();
+}
+
+function confirmSubmit() {
+  const unanswered = userAnswers.filter(a => a === -1).length;
+  const msg = unanswered > 0
+    ? `You have ${unanswered} unanswered question(s). Are you sure you want to submit?`
+    : 'Are you sure you want to submit your exam?';
+  if (confirm(msg)) submitExam();
+}
+
+function submitExam() {
+  clearInterval(timerInterval);
+  examSubmitted = true;
+  calculateResults();
+  showScreen('resultsScreen');
+  animateResults();
+}
+
+function calculateResults() {
+  let correct = 0, wrong = 0, skipped = 0;
+  questions.forEach((q, i) => {
+    const ua = userAnswers[i];
+    if (ua === -1) skipped++;
+    else if (ua === q.shuffledAns) correct++;
+    else wrong++;
+  });
+  window._results = {correct, wrong, skipped, score: correct};
+}
+
+function animateResults() {
+  const {correct, wrong, skipped, score} = window._results;
+  const pct = score;
+
+  document.getElementById('correctCount').textContent = correct;
+  document.getElementById('wrongCount').textContent = wrong;
+  document.getElementById('skippedCount').textContent = skipped;
+  document.getElementById('percentNum').textContent = pct + '%';
+
+  // Animate score counter
+  let n = 0;
+  const interval = setInterval(() => {
+    n = Math.min(n + 2, score);
+    document.getElementById('scoreNum').textContent = n;
+    if (n >= score) clearInterval(interval);
+  }, 20);
+
+  // Animate ring
+  const circumference = 427.3;
+  const offset = circumference - (pct / 100) * circumference;
+  const ring = document.getElementById('ringFill');
+  ring.style.stroke = pct >= 85 ? '#10b981' : pct >= 70 ? '#00d4ff' : pct >= 50 ? '#f59e0b' : '#ef4444';
+  setTimeout(() => { ring.style.strokeDashoffset = offset; }, 100);
+
+  // Grade and encouragement
+  let grade, gradeClass, encouragement;
+  if (pct >= 90) {
+    grade = 'A+'; gradeClass = 'grade-A';
+    encouragement = '🏆 EXCEPTIONAL! You have truly mastered this course. Your dedication is extraordinary — you are not just exam-ready, you are outstanding! Keep this standard and you will excel in everything you do.';
+  } else if (pct >= 80) {
+    grade = 'A'; gradeClass = 'grade-A';
+    encouragement = '⭐ EXCELLENT work! You have a strong command of technical report writing. A few more reviews and you will achieve perfection. You should be very proud of yourself!';
+  } else if (pct >= 70) {
+    grade = 'B'; gradeClass = 'grade-B';
+    encouragement = '💡 GREAT JOB! Solid understanding across the board. Review the questions you missed — you are very close to excellence. Stay focused and confident!';
+  } else if (pct >= 60) {
+    grade = 'C'; gradeClass = 'grade-C';
+    encouragement = '📚 GOOD EFFORT! You have a foundation to build on. Study the highlighted wrong answers carefully, especially the trick tips. A focused review session will make a big difference — you can do this!';
+  } else {
+    grade = 'D'; gradeClass = 'grade-D';
+    encouragement = '💪 DON\'T GIVE UP! Every expert started somewhere. Review the answer tips carefully — each wrong answer is a lesson in disguise. Go back to the lectures, then retry. Your persistence IS your strength!';
+  }
+
+  document.getElementById('gradeBanner').textContent = `🎓 Grade: ${grade}`;
+  document.getElementById('gradeBanner').className = `grade-banner ${gradeClass}`;
+  document.getElementById('encouragementText').textContent = encouragement;
+}
+
+function showReview() {
+  buildReview('all');
+  showScreen('reviewScreen');
+}
+
+function buildReview(filter) {
+  reviewFilter = filter;
+  const labels = ['A', 'B', 'C', 'D'];
+  let html = '';
+  let count = 0;
+
+  questions.forEach((q, i) => {
+    const ua = userAnswers[i];
+    const isCorrect = ua === q.shuffledAns;
+    const isSkipped = ua === -1;
+    const isWrong = !isCorrect && !isSkipped;
+
+    const status = isCorrect ? 'correct' : isSkipped ? 'skipped' : 'wrong';
+    if (filter !== 'all' && filter !== status) return;
+    count++;
+
+    const statusLabel = isCorrect ? '✓ Correct' : isSkipped ? '⊘ Skipped' : '✗ Wrong';
+    const statusClass = isCorrect ? 'status-correct' : isSkipped ? 'status-skipped' : 'status-wrong';
+
+    let choicesHTML = q.shuffledChoices.map((c, ci) => {
+      let cls = 'normal';
+      if (ci === q.shuffledAns) cls = 'correct-ans';
+      else if (ci === ua && !isCorrect) cls = 'wrong-ans';
+      const icon = ci === q.shuffledAns ? '✓' : (ci === ua && !isCorrect ? '✗' : '');
+      return `<div class="ri-choice ${cls}"><span class="ri-choice-lbl">${labels[ci]}</span><span>${c.text} ${icon ? `<b>${icon}</b>` : ''}</span></div>`;
+    }).join('');
+
+    const trickHTML = (isWrong || isSkipped) ? `
+      <div class="trick-box">
+        <div class="trick-title">💡 Exam Trick — How to Remember This</div>
+        <div class="trick-text">${q.trick}</div>
+      </div>
+    ` : '';
+
+    html += `
+      <div class="review-item ${status}">
+        <div class="ri-meta">
+          <span class="q-num">Q${i + 1}</span>
+          <span class="ri-status ${statusClass}">${statusLabel}</span>
+          <span style="font-size:11px;color:var(--muted)">${q.topic}</span>
+        </div>
+        <div class="ri-q">${q.q}</div>
+        <div class="ri-choices">${choicesHTML}</div>
+        ${trickHTML}
+      </div>
+    `;
+  });
+
+  // Update filter button labels
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    const f = btn.getAttribute('onclick').match(/'(\w+)'/)[1];
+    const counts = {all: 100, correct: window._results.correct, wrong: window._results.wrong, skipped: window._results.skipped};
+    const labels2 = {all: 'All', correct: 'Correct ✓', wrong: 'Wrong ✗', skipped: 'Skipped'};
+    btn.textContent = `${labels2[f]} (${counts[f]})`;
+    btn.classList.toggle('active', f === filter);
+  });
+
+  document.getElementById('reviewContainer').innerHTML = html || '<p style="color:var(--muted);text-align:center;padding:40px">No questions in this category.</p>';
+}
+
+function filterReview(f, btn) {
+  buildReview(f);
+}
+
+function showResults() {
+  showScreen('resultsScreen');
+}
+
+function retryExam() {
+  showScreen('startScreen');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
